@@ -17,7 +17,7 @@ const io = new Server(server, {
   },
 })
 const db = createClient({
-  url: 'libsql://included-kingpin-davidcs9.turso.io',
+  url: process.env.DATABASE_URL,
   authToken: process.env.ENCRYPTION_KEY,
 })
 
