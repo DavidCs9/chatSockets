@@ -1,0 +1,198 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Sockets</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        background-color: #121212;
+        color: #e0e0e0;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+      }
+
+      #chat {
+        background-color: #1e1e1e;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+        width: 100%;
+        max-width: 400px;
+      }
+
+      h1 {
+        font-size: 24px;
+        margin-bottom: 20px;
+        text-align: center;
+      }
+
+      form {
+        display: flex;
+        margin-bottom: 20px;
+      }
+
+      input[type='text'] {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #333;
+        border-radius: 4px;
+        margin-right: 10px;
+        background-color: #2c2c2c;
+        color: #e0e0e0;
+      }
+
+      button[type='submit'] {
+        padding: 10px 20px;
+        border: none;
+        background-color: #007bff;
+        color: #fff;
+        border-radius: 4px;
+        cursor: pointer;
+      }
+
+      button[type='submit']:hover {
+        background-color: #0056b3;
+      }
+
+      #messages {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+      }
+
+      #messages li {
+        padding: 10px;
+        border-bottom: 1px solid #333;
+        background-color: #2c2c2c;
+        border-radius: 4px;
+        margin-bottom: 10px;
+      }
+
+      .message {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 5px;
+      }
+
+      .message-avatar {
+        width: 30px;
+        height: 30px;
+        border-radius: 50%;
+        margin-right: 10px;
+      }
+
+      .message-user {
+        display: flex;
+        align-items: center;
+        font-size: 0.9em;
+        color: #bbb;
+      }
+
+      .message-text {
+        flex-grow: 1;
+        padding-left: 1rem;
+        color: #e0e0e0;
+      }
+
+      .message-date {
+        font-size: 0.8em;
+        color: #888;
+        margin-left: 10px;
+      }
+
+      .message-os {
+        font-size: 0.8em;
+        color: #888;
+        margin-left: 10px;
+      }
+    </style>
+
+    <script type="module">
+      import { io } from 'https://cdn.socket.io/4.7.5/socket.io.esm.min.js'
+      const socket = io()
+      const form = document.querySelector('form')
+      const input = document.querySelector('input')
+      const messages = document.querySelector('#messages')
+
+      async function getUser() {
+        const userName = localStorage.getItem('userName')
+        const userAvatar = localStorage.getItem('userAvatar')
+        if (userName && userAvatar) {
+          return { userName, userAvatar }
+        }
+
+        const res = await fetch(
+          'https://random-data-api.com/api/users/random_user',
+        )
+        const { username: randomUsername, avatar: randomAvatar } =
+          await res.json()
+        localStorage.setItem('userName', randomUsername)
+        localStorage.setItem('userAvatar', randomAvatar)
+        return { userName: randomUsername, userAvatar: randomAvatar }
+      }
+
+      const { userName, userAvatar } = await getUser()
+
+      socket.on('message', (data) => {
+        const li = document.createElement('li')
+        li.classList.add('message')
+
+        const avatar = document.createElement('img')
+        avatar.src = data.userAvatar
+        avatar.classList.add('message-avatar')
+
+        const userName = document.createElement('span')
+        userName.textContent = data.userName
+
+        const userContainer = document.createElement('div')
+        userContainer.classList.add('message-user')
+        userContainer.appendChild(avatar)
+        userContainer.appendChild(userName)
+
+        const messageText = document.createElement('span')
+        messageText.classList.add('message-text')
+        messageText.textContent = data.message
+
+        const messageDate = document.createElement('span')
+        messageDate.classList.add('message-date')
+        messageDate.textContent = data.date
+
+        li.appendChild(userContainer)
+        li.appendChild(messageText)
+        li.appendChild(messageDate)
+        messages.appendChild(li)
+      })
+
+      form.addEventListener('submit', (event) => {
+        event.preventDefault()
+        if (input.value) {
+          const messageData = {
+            message: input.value,
+            date: new Date().toLocaleString(),
+            userName,
+            userAvatar,
+          }
+          socket.emit('message', messageData)
+          input.value = ''
+        }
+      })
+    </script>
+  </head>
+  <body>
+    <section id="chat">
+      <h1>Chat Sockets</h1>
+      <form>
+        <input type="text" id="message" placeholder="Message" />
+        <button type="submit">Send</button>
+      </form>
+      <ul id="messages"></ul>
+    </section>
+  </body>
+</html>
