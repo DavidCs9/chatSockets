@@ -50,9 +50,7 @@ io.on('connection', async (socket) => {
 
   if (!socket.recovered) {
     try {
-      const results = await db.execute(
-        'SELECT * FROM messages ORDER BY id DESC',
-      )
+      const results = await db.execute('SELECT * FROM messages')
       results.rows.forEach((row) => {
         socket.emit('message', row)
       })

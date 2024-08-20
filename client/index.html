@@ -66,6 +66,8 @@
         margin: 0;
         height: 420px;
         overflow-y: auto;
+        display: flex;
+        flex-direction: column;
       }
 
       #messages li {
@@ -169,7 +171,8 @@
         li.appendChild(userContainer)
         li.appendChild(messageText)
         li.appendChild(messageDate)
-        messages.appendChild(li)
+        // Prepend the new message to the top of the list
+        messages.insertBefore(li, messages.firstChild)
       })
 
       form.addEventListener('submit', (event) => {
